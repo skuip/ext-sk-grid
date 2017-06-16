@@ -1,0 +1,75 @@
+<!-- vim:set ft=xml: -->
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>SK Grid</title>
+		<link rel="stylesheet" href="options.css">
+	</head>
+	<body>
+		<h1>SK Grid</h1>
+
+		<button class="reset" type="reset">Reset to defaults</button>
+
+		<h2>Breakpoints</h2>
+		<table class="breakpoint">
+			<thead>
+				<tr>
+					<th class="string">Name</th>
+					<th class="integer">Width</th>
+					<th class="integer">Columns</th>
+					<th class="integer">Gutter</th>
+					<th class="integer">Margin</th>
+					<th>&nbsp;</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr class="tmpl">
+					<td class="string name"></td>
+					<td class="integer width"></td>
+					<td class="integer columns"></td>
+					<td class="integer gutter"></td>
+					<td class="integer margin"></td>
+					<td><button class="del" title="Remove" type="button">Delete</button></td>
+				</tr>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td class="string"><input class="name" name="name" /></td>
+					<td class="integer"><input class="width" name="width" /></td>
+					<td class="integer"><input class="columns" name="columns" value="12" /></td>
+					<td class="integer"><input class="gutter" name="gutter" value="16" /></td>
+					<td class="integer"><input class="margin" name="margin" value="32" /></td>
+					<td><button class="add" title="Add" type="button">Add</button></td>
+				</tr>
+			</tfoot>
+		</table>
+
+		<h2>Max width</h2>
+		<table class="max-width">
+			<thead>
+				<tr>
+					<th class="integer">Width</th>
+					<th class="radio">Active</th>
+					<th>&nbsp;</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr class="tmpl">
+					<td class="integer width"></td>
+					<td class="radio default"><input class="active" name="active" type="radio" /></td>
+					<td><button class="del" title="Remove" type="button">Delete</button></td>
+				</tr>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td class="integer"><input class="width" name="width" /></td>
+					<td class="radio"></td>
+					<td><button class="add" title="Add" type="button">Add</button></td>
+				</tr>
+			</tfoot>
+		</table>
+
+		<script src="options.js"></script>
+	</body>
+</html>

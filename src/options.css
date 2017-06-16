@@ -1,0 +1,35 @@
+/* vim:set foldmarker={,} textwidth=80: */
+button[type="button"] {
+	background-color: lightgrey;
+	border: 1px solid;
+	height: 24px;
+}
+button[type="reset"] {
+	background-color: lightgrey;
+	border: 1px solid;
+	height: 24px;
+}
+table {
+	border-collapse: collapse;
+}
+th, td {
+	border: 1px solid;
+	padding: 4px 4px;
+}
+.tmpl {
+	display: none;
+}
+
+.radio {
+	text-align: center;
+}
+
+.integer {
+	text-align: right;
+}
+th.integer {
+	text-align: center;
+}
+.integer input {
+	width: 5em;
+}
