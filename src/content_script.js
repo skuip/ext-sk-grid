@@ -36,13 +36,13 @@
 					border-left: ${bp.margin}px solid rgba(0,0,128,0.10);
 					border-right: ${bp.margin}px solid rgba(0,0,128,0.10);
 				}
-				sk-column {
+				sk-grid-column {
 					border-width: 0 ${bp.gutter / 2}px;
 				}
-				sk-column:nth-child(n + ${bp.columns + 1}) {
+				sk-grid-column:nth-child(n + ${bp.columns + 1}) {
 					display: none;
 				}
-				sk-column:after {
+				sk-grid-column:after {
 					left: ${bp.gutter}px;
 					right: ${bp.gutter}px;
 				}
@@ -54,7 +54,7 @@
 		if (minWidthInnerLine < maxWidth) {
 			css.push(`
 				@media (min-width: ${minWidthInnerLine + 1}px) and (max-width: ${maxWidth}px) {
-					sk-column:after {
+					sk-grid-column:after {
 						display: block;
 					}
 				}

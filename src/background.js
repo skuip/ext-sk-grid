@@ -1,12 +1,17 @@
 /* vim:set textwidth=80: */
 'use strict';
 
+/**
+ * Only inject content script and stylesheet when activated.
+ */
 chrome.browserAction.onClicked.addListener(function (tab) {
 	var data = { action: `knock-knock` };
 
 	chrome.tabs.getZoom(tab.id, function (zoomFactor) {
 		data.zoomFactor = zoomFactor;
 
+		// Send message to tab. This will fail the first time, since the content
+		// script and stylesheet aren't injected yet.
 		chrome.tabs.sendMessage(tab.id, data, function () {
 			if (!chrome.runtime.lastError) return;
 			chrome.tabs.insertCSS(tab.id, {file: `content_style.css`}, function () {
@@ -16,6 +21,10 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 	});
 });
 
+/**
+ * Message the content script the zoom level has changed,
+ * so it can update the state
+ */
 chrome.tabs.onZoomChange.addListener(function (options) {
 	chrome.tabs.sendMessage(options.tabId, {
 		action: `zoomChange`,
@@ -25,6 +34,7 @@ chrome.tabs.onZoomChange.addListener(function (options) {
 
 chrome.runtime.onMessage.addListener(function (r, sender, sendResponse) {
 	switch (r.action) {
+		/* Options page request a reset of the settings */
 		case `reset`:
 			reset(sendResponse);
 			break;
@@ -56,6 +66,9 @@ chrome.runtime.onMessage.addListener(function (r, sender, sendResponse) {
 	return true;
 });
 
+/**
+ * Returns the default settings.
+ */
 function defaults () {
 	return {
 		breakpoint: [
@@ -74,6 +87,9 @@ function defaults () {
 	};
 }
 
+/**
+ * Reset the settings to the default
+ */
 function reset (callback) {
 	var options = defaults();
 	chrome.storage.local.set(options, function () {
