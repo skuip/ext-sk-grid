@@ -1,0 +1,101 @@
+<style type="text/css">
+	.grid {
+		--color-column: rgba(255,  0,  0,0.10);
+		--color-gutter: rgba(255,  0,  0,0.00);
+		--color-margin: rgba(  0,  0,255,0.10);
+
+		border-left: var(--grid-margin) solid var(--color-margin);
+		border-right: var(--grid-margin) solid var(--color-margin);
+		bottom: 0;
+		box-sizing: border-box;
+		color: #000;
+		display: flex;
+		font: normal normal 12px/1.2 sans-serif;
+		left: 0;
+		margin: auto;
+		max-width: var(--grid-width);
+		pointer-events: none;
+		position: fixed;
+		right: 0;
+		text-align: center;
+		text-shadow: 0 0 2px white, 0 0 2px white, 0 0 2px white, 0 0 2px white;
+		top: 0;
+		white-space: nowrap;
+		z-index: 9999999999;
+	}
+
+	.column {
+		background-color: var(--color-column);
+		box-shadow: 0 0 0 calc(var(--grid-gutter) / 2) var(--color-gutter);
+		box-sizing: border-box;
+		flex: 1 1 1px;
+		margin: 0 calc(var(--grid-gutter) / 2);
+		position: relative;
+	}
+
+	.column:first-of-type {
+		box-shadow: calc(var(--grid-gutter) / 2) 0 0 0 var(--color-gutter);
+		margin-left: 0;
+	}
+	.column:last-of-type {
+		box-shadow: calc(var(--grid-gutter) / -2) 0 0 0 var(--color-gutter);
+		margin-right: 0;
+	}
+
+	.column::before {
+		box-sizing: border-box;
+		content: attr(data-column);
+		font: inherit;
+		left: 0;
+		position: absolute;
+		right: 0;
+		text-align:center;
+		top: 0;
+	}
+	.column:first-of-type::after {
+		bottom: 0;
+		box-sizing: border-box;
+		content: attr(data-colwidth);
+		font: inherit;
+		left: 0;
+		margin: auto;
+		position: absolute;
+		right: 0;
+	}
+
+	.show {
+		bottom: 0;
+		position: fixed;
+		right: 0;
+	}
+
+	.width {
+		background: none;
+		border: none;
+		bottom: 0;
+		cursor: pointer;
+		font-size: var(--grid-margin);
+		height: 2em;
+		margin: auto;
+		pointer-events: all;
+		position: absolute;
+		top: 0;
+		width: 1em;
+	}
+	.width:hover {
+		background: black;
+		color: white;
+	}
+	.left {
+		right: 100%;
+	}
+	.right {
+		left: 100%;
+	}
+</style>
+<div class="grid">
+	<span class="show">mobile - 320x480</span>
+	<button class="width left">&lt;</button>
+	<button class="width right">&gt;</button>
+	<div class="column" data-column="1"></div>
+</div>

@@ -2,9 +2,14 @@
 'use strict';
 
 (function (window, document) {
-	var grid = document.querySelector(`sk-grid`);
+	console.log(`SK-Grid loaded`);
 
-	console.log(`SK-Grid enabled`);
+	const gridElement = document.createElement(`div`);
+	gridElement.attachShadow({ mode: `open` });
+	gridElement.setAttribute(`hidden`, `hidden`);
+	document.body.appendChild(gridElement);
+
+	let grid;
 
 	chrome.runtime.onMessage.addListener(handleMessage);
 	chrome.runtime.sendMessage({ action: `options` }, enableGrid);
@@ -12,11 +17,11 @@
 	function handleMessage (data, sender, sendResponse) {
 		switch (data.action) {
 			case `knock-knock`:
-				if (grid.getAttribute(`aria-hidden`) === `true`) {
-					grid.removeAttribute(`aria-hidden`);
+				if (gridElement.hasAttribute(`hidden`)) {
+					gridElement.removeAttribute(`hidden`);
 					console.log(`SK-Grid enabled`);
 				} else {
-					grid.setAttribute(`aria-hidden`, `true`);
+					gridElement.setAttribute(`hidden`, `hidden`);
 					console.log(`SK-Grid disabled`);
 				}
 				sendResponse({});
@@ -25,71 +30,68 @@
 			case `zoomChange`:
 				break;
 		}
-
-		grid.style[`font-size`] = (12 / data.zoomFactor).toFixed(2) + `px`;
 	}
 
-
 	function enableGrid (options) {
-		var i, breakpointIdx = -1, columns = [];
+		var i, breakpoint = `unknown`, columns = [ null ];
 
-		// Create grid element
-		grid = document.createElement(`sk-grid`);
-		grid.style[`font-size`] = (12 / options.zoomFactor).toFixed(2) + `px`;
+		gridElement.shadowRoot.innerHTML = options.shadowRoot;
+		grid = gridElement.shadowRoot.querySelector(`.grid`);
 
-		options.maxWidth.forEach(function (item) {
-			if (item.active) grid.style.maxWidth = item.width + `px`;
-		});
+		for (i = 0; i < options.maxWidth.length; i++) {
+			let item = options.maxWidth[i];
+
+			if (window.innerWidth < item.width) break;
+
+			grid.style.setProperty(`--grid-width`, item.width + `px`);
+
+			if (item.active) break;
+		}
 
 		const maxColumns = options.breakpoint.reduce((acc, cur) => {
 			return Math.max(acc, cur.columns);
 		}, 0);
 
-		for (i = maxColumns; i > 0; i--) {
-			columns[i] = document.createElement(`sk-grid-column`);
-			columns[i].innerHTML = `<sk-grid-info>${i}</sk-grid-info>`;
+		columns[1] = grid.querySelector(`.column`);
+
+
+		for (i = 2; i <= maxColumns; i++) {
+			columns[i] = columns[1].cloneNode();
+			columns[i].setAttribute(`data-column`, i);
+			grid.appendChild(columns[i]);
 		}
 
-		var show = document.createElement(`sk-grid-show`);
-		grid.appendChild(show);
-
-		var maxw = document.createElement(`sk-grid-max-width`);
-		maxw.textContent = `⟺`;
-		grid.appendChild(maxw);
-
-		document.body.appendChild(grid);
+		const show = grid.querySelector(`.show`);
 
 		function handleResize () {
 			var height = window.innerHeight;
 			var width = window.innerWidth;
 			var infoWidth = columns[1].getBoundingClientRect();
-			columns[1].firstElementChild.innerHTML = infoWidth.width.toFixed(1) + `px`;
-			console.log(columns);
 
-			for (var i = options.breakpoint.length - 1; i >= 0; i--) {
-				var bp = options.breakpoint[i];
+			columns[1].setAttribute(`data-width`, infoWidth.width.toFixed(1) + `px`);
 
-				if (bp.width <= width) {
-					show.innerHTML = options.breakpoint[i].name + ` - ` + width + `x` + height;
+			const bp = options.breakpoint.reduce((acc, cur) => {
+				if (acc.width > width) return cur;
+				if (cur.width > width) return acc;
+				return acc.width < cur.width ? cur : acc;
+			});
 
-					if (i !== breakpointIdx) {
-						breakpointIdx = i;
-						for (var j = 1; j < columns.length; j++) {
-							console.log(j, columns[j]);
-							if (j <= bp.columns) {
-								grid.appendChild(columns[j]);
-							} else if (columns[j].parentNode) {
-								grid.removeChild(columns[j]);
-							}
-						}
+			show.innerHTML = bp.name + ` - ` + width + `x` + height;
 
-						grid.style.setProperty(`--grid-columns`, bp.columns);
-						grid.style.setProperty(`--grid-gutter`, bp.gutter + `px`);
-						grid.style.setProperty(`--grid-margin`, bp.margin + `px`);
+			if (bp.name !== breakpoint) {
+				breakpoint = bp.name;
+
+				for (var j = 1; j < columns.length; j++) {
+					if (j <= bp.columns) {
+						grid.appendChild(columns[j]);
+					} else if (columns[j].parentNode) {
+						grid.removeChild(columns[j]);
 					}
-
-					break;
 				}
+
+				grid.style.setProperty(`--grid-columns`, bp.columns);
+				grid.style.setProperty(`--grid-gutter`, bp.gutter + `px`);
+				grid.style.setProperty(`--grid-margin`, bp.margin + `px`);
 			}
 		}
 
@@ -97,28 +99,17 @@
 		window.addEventListener(`resize`, handleResize);
 
 		grid.addEventListener(`click`, function handleClick () {
-			var width = parseInt(grid.style.maxWidth);
+			let width = parseInt(grid.style.getPropertyValue(`--grid-width`));
+			if (isNaN(width) || width >= 4096) width = 0;
 
-			if (isNaN(width) || width === 0) {
-				width = 4096;
-			}
+			const widths = options.maxWidth.filter(i => window.innerWidth > i.width);
+			widths.push({ width: 4096 });
 
-			var maxWidth;
-			for (var i = options.maxWidth.length - 1; i >= 0; i--) {
-				maxWidth = options.maxWidth[i].width
-				if (window.innerWidth > maxWidth) {
-					if (width > maxWidth) {
-						chrome.runtime.sendMessage({
-							action: `maxWidth`,
-							index: i
-						});
-						break;
-					} else {
-						maxWidth = 4096;
-					}
-				}
-			}
-			grid.style.maxWidth = maxWidth + `px`;
+			const bigger = widths.filter(i => i.width > width);
+
+			const maxWidth = bigger.length ? bigger[0].width : widths.width;
+
+			grid.style.setProperty(`--grid-width`, maxWidth + `px`);
 
 			handleResize();
 		});
@@ -127,3 +118,5 @@
 	}
 
 })(window, document);
+
+`OK`;

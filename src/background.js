@@ -45,27 +45,24 @@ function handleOnMessage(r, sender, sendResponse) {
 			break;
 
 		case `options`:
+
 			chrome.storage.local.get(null, function(data) {
 				if (!data.breakpoint || !data.maxWidth) {
 					data = defaults();
 				}
 				chrome.tabs.getZoom(sender.tab.id, function (zoomFactor) {
 					data.zoomFactor = zoomFactor;
-					sendResponse(data);
+
+					const url = chrome.runtime.getURL(`shadow-root.html`);
+					fetch(url)
+						.then(response => response.text())
+						.then(shadowRoot => {
+							sendResponse({ ...data, shadowRoot });
+						});
 				});
 			});
 			break;
 
-		case `maxWidth`:
-			chrome.storage.local.get(null, function(options) {
-				if (options.maxWidth) {
-					for (var i = 0; i < options.maxWidth.length; i++) {
-						options.maxWidth[i].active = i === r.index;
-					}
-					chrome.storage.local.set(options);
-				}
-			});
-			break;
 		case `finished`:
 			chrome.runtime.onMessage.removeListener(handleOnMessage);
 			chrome.tabs.onZoomChange.removeListener(handleOnZoomChange);
@@ -79,7 +76,6 @@ function handleOnMessage(r, sender, sendResponse) {
  * Only inject content script and stylesheet when activated.
  */
 chrome.browserAction.onClicked.addListener(function (tab) {
-	var data = { action: `knock-knock` };
 
 	/**
 	 * Message the content script the zoom level has changed,
@@ -88,17 +84,24 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 	chrome.tabs.onZoomChange.addListener(handleOnZoomChange);
 	chrome.runtime.onMessage.addListener(handleOnMessage);
 
-	chrome.tabs.getZoom(tab.id, function (zoomFactor) {
-		data.zoomFactor = zoomFactor;
+	const message = { action: `knock-knock` };
 
-		// Send message to tab. This will fail the first time, since the content
-		// script and stylesheet aren't injected yet.
-		chrome.tabs.sendMessage(tab.id, data, function () {
-			if (!chrome.runtime.lastError) return;
-			chrome.tabs.insertCSS(tab.id, {file: `content_style.css`}, function () {
-				chrome.tabs.executeScript(tab.id, {file: `content_script.js`});
+	chrome.tabs.sendMessage(tab.id, message, function (response) {
+		if (response === `OK`) return console.log(tab.id, `Message received`);
+		// Message fails first time, since script isn`t yet injected.
+		if (chrome.runtime.lastError) {
+			chrome.tabs.executeScript(tab.id, {file: `content_script.js`}, function (response) {
+				if (response[0] !== `OK`) {
+					return console.warn(tab.id, `Unexpected script response`, response);
+				}
+				chrome.tabs.sendMessage(tab.id, message, function (response) {
+					if (response !== `OK`) {
+						console.warn(tab.id, `Unexpected message response`);
+					}
+				});
 			});
-		});
+		}
 	});
 });
 
+`OK`;
