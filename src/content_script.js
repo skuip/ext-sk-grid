@@ -29,43 +29,9 @@
 		grid.style[`font-size`] = (12 / data.zoomFactor).toFixed(2) + `px`;
 	}
 
-	function generateMedia (bp, maxWidth) {
-		var css = [`
-			@media (min-width: ${bp.width + 1}px) and (max-width: ${maxWidth}px) {
-				sk-grid {
-					border-left: ${bp.margin}px solid rgba(0,0,128,0.10);
-					border-right: ${bp.margin}px solid rgba(0,0,128,0.10);
-				}
-				sk-grid-column {
-					border-width: 0 ${bp.gutter / 2}px;
-				}
-				sk-grid-column:nth-child(n + ${bp.columns + 1}) {
-					display: none;
-				}
-				sk-grid-column:after {
-					left: ${bp.gutter}px;
-					right: ${bp.gutter}px;
-				}
-			}
-		`];
-
-		// Hide inner padding lines when column is less 32px. It doesn`t fit anymore
-		var minWidthInnerLine = bp.columns * (3 * bp.gutter) + 2 * bp.margin - bp.gutter;
-		if (minWidthInnerLine < maxWidth) {
-			css.push(`
-				@media (min-width: ${minWidthInnerLine + 1}px) and (max-width: ${maxWidth}px) {
-					sk-grid-column:after {
-						display: block;
-					}
-				}
-			`);
-		}
-
-		return css.join(``);
-	}
 
 	function enableGrid (options) {
-		var i, column, infoColumn;
+		var i, breakpointIdx = -1, columns = [];
 
 		// Create grid element
 		grid = document.createElement(`sk-grid`);
@@ -75,14 +41,13 @@
 			if (item.active) grid.style.maxWidth = item.width + `px`;
 		});
 
-		for (i = 12; i > 0; i--) {
-			infoColumn = document.createElement(`sk-grid-info`);
-			infoColumn.innerHTML = i;
+		const maxColumns = options.breakpoint.reduce((acc, cur) => {
+			return Math.max(acc, cur.columns);
+		}, 0);
 
-			column = document.createElement(`sk-grid-column`);
-			column.appendChild(infoColumn);
-
-			grid.insertBefore(column, grid.firstElementChild);
+		for (i = maxColumns; i > 0; i--) {
+			columns[i] = document.createElement(`sk-grid-column`);
+			columns[i].innerHTML = `<sk-grid-info>${i}</sk-grid-info>`;
 		}
 
 		var show = document.createElement(`sk-grid-show`);
@@ -92,36 +57,39 @@
 		maxw.textContent = `⟺`;
 		grid.appendChild(maxw);
 
-		var maxi = document.createElement(`sk-grid-max-info`);
-		grid.appendChild(maxi);
-
 		document.body.appendChild(grid);
-
-		var css = ``;
-		for (i = 0; i < options.breakpoint.length; i++) {
-			if (i + 1 < options.breakpoint.length) {
-				css += generateMedia(options.breakpoint[i], options.breakpoint[i + 1].width);
-			} else {
-				css += generateMedia(options.breakpoint[i], 1e6);
-			}
-		}
-
-		var s = document.createElement(`style`);
-		s.textContent = css;
-		document.head.appendChild(s);
 
 		function handleResize () {
 			var height = window.innerHeight;
 			var width = window.innerWidth;
-			var infoWidth = parseFloat(window.getComputedStyle(infoColumn.parentNode).width) - 16;
-			infoColumn.innerHTML = infoWidth.toFixed(1) + `px`;
+			var infoWidth = columns[1].getBoundingClientRect();
+			columns[1].firstElementChild.innerHTML = infoWidth.width.toFixed(1) + `px`;
+			console.log(columns);
 
 			for (var i = options.breakpoint.length - 1; i >= 0; i--) {
-				if (options.breakpoint[i].width < width) {
+				var bp = options.breakpoint[i];
+
+				if (bp.width <= width) {
 					show.innerHTML = options.breakpoint[i].name + ` - ` + width + `x` + height;
+
+					if (i !== breakpointIdx) {
+						breakpointIdx = i;
+						for (var j = 1; j < columns.length; j++) {
+							console.log(j, columns[j]);
+							if (j <= bp.columns) {
+								grid.appendChild(columns[j]);
+							} else if (columns[j].parentNode) {
+								grid.removeChild(columns[j]);
+							}
+						}
+
+						grid.style.setProperty(`--grid-columns`, bp.columns);
+						grid.style.setProperty(`--grid-gutter`, bp.gutter + `px`);
+						grid.style.setProperty(`--grid-margin`, bp.margin + `px`);
+					}
+
 					break;
 				}
-				maxi.innerHTML = parseInt(window.getComputedStyle(grid).width) + `px`;
 			}
 		}
 

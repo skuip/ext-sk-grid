@@ -1,12 +1,17 @@
 :root {
-	--column-border: rgba(128,128,128,0.2);
-	--column-bcolor: rgba(196,196,196,0.2);
-	--color-gutter: rgba(255,255,255,0);
+	--color-column: rgba(255,  0,  0,0.10);
+	--color-gutter: rgba(255,  0,  0,0.00);
+	--color-margin: rgba(  0,  0,255,0.10);
+
+	--grid-columns: 12;
+	--grid-gutter: 16px;
+	--grid-margin: 32px;
+	--grid-width: 1200px;
 }
 
 sk-grid {
-	text-align: center;
-	white-space: nowrap;
+	border-left: var(--grid-margin) solid var(--color-margin);
+	border-right: var(--grid-margin) solid var(--color-margin);
 	bottom: 0;
 	box-sizing: border-box;
 	color: #000;
@@ -14,11 +19,14 @@ sk-grid {
 	font: normal normal 12px/1.2 sans-serif;
 	left: 0;
 	margin: auto;
+	max-width: var(--grid-width);
 	pointer-events: none;
 	position: fixed;
 	right: 0;
+	text-align: center;
 	text-shadow: 0 0 2px white, 0 0 2px white, 0 0 2px white, 0 0 2px white;
 	top: 0;
+	white-space: nowrap;
 	z-index: 9999999999;
 }
 
@@ -27,44 +35,21 @@ sk-grid[aria-hidden="true"] {
 }
 
 sk-grid-column {
-	border-style: solid;
-	border-width: 0 8px;
-	border-color: var(--color-gutter);
+	background-color: var(--color-column);
+	box-shadow: 0 0 0 calc(var(--grid-gutter) / 2) var(--color-gutter);
 	box-sizing: border-box;
 	flex: 1 1 1px;
+	margin: 0 calc(var(--grid-gutter) / 2);
 	position: relative;
 }
 
 sk-grid-column:first-of-type {
-	border-left-width: 0;
+	box-shadow: calc(var(--grid-gutter) / 2) 0 0 0 var(--color-gutter);
+	margin-left: 0;
 }
-
 sk-grid-column:last-of-type {
-	border-right-width: 0;
-}
-
-sk-grid-column:before {
-	background-color: var(--column-bcolor);
-	border-style: solid;
-	border-width: 0 1px;
-	border-color: var(--column-border);
-	bottom: 0;
-	content: "";
-	left: 0;
-	position: absolute;
-	right: 0;
-	top: 0;
-}
-
-sk-grid-column:after {
-	border-color: var(--column-border);
-	border-style: dotted;
-	border-width: 0 1px;
-	bottom: 0;
-	content: "";
-	display: none;
-	position: absolute;
-	top: 0;
+	box-shadow: calc(var(--grid-gutter) / -2) 0 0 0 var(--color-gutter);
+	margin-right: 0;
 }
 
 sk-grid-info {
@@ -84,15 +69,9 @@ sk-grid-show {
 
 sk-grid-max-width {
 	bottom: 0;
-	left: 0;
-	position: absolute;
 	cursor: pointer;
-	right: 0;
-	pointer-events: all;
-}
-
-sk-grid-max-info {
-	bottom: 0;
 	left: 0;
+	pointer-events: all;
 	position: absolute;
+	right: 0;
 }

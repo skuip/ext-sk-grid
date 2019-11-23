@@ -41,21 +41,45 @@ module.exports = function (grunt)
 				javascript:
 				{
 					files: [ 'src/*.js' ],
-					tasks: [ 'eslint', 'zip' ]
+					tasks: [ 'eslint' ]
 				},
 				stylesheet:
 				{
 					files: [ 'src/*.styl' ],
-					tasks: [ 'stylus', 'zip' ]
+					tasks: [ 'stylus' ]
+				},
+				other:
+				{
+					files: [ 'src/*' ],
+					tasks: [ 'zip:chromium', 'zip:mozilla' ]
 				}
 			},
 
 			zip: {
-				dist: {
-					cwd: 'src/',
+				chromium: {
 					src: [ 'src/*' ],
-					dest: 'dist/extension.zip',
-					compression: 'DEFLATE'
+					dest: 'dist/chromium.zip',
+					compression: 'DEFLATE',
+					router: function (filepath) {
+						// Skip mozilla files
+						if (filepath.match(/-mozilla/)) return null;
+
+						filepath = filepath.replace(/src\//, '');
+						return filepath;
+					}
+				},
+				mozilla: {
+					src: [ 'src/*' ],
+					dest: 'dist/mozilla.zip',
+					compression: 'DEFLATE',
+					router: function (filepath) {
+						// Skip manifest, use the mozilla one
+						if (filepath.match(/manifest.json/)) return null;
+						filepath = filepath.replace(/-mozilla/, '');
+
+						filepath = filepath.replace(/src\//, '');
+						return filepath;
+					}
 				}
 			}
 		});
