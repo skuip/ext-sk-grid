@@ -7,11 +7,11 @@
 function defaults () {
 	return {
 		breakpoint: [
-			{ width:    0, columns:  6, gutter: 16, margin: 16, name: `mobile` },
-			{ width:  576, columns: 12, gutter: 16, margin: 16, name: `portrait` },
-			{ width:  768, columns: 24, gutter: 16, margin: 24, name: `landscape` },
-			{ width:  992, columns: 24, gutter: 16, margin: 32, name: `desktop` },
-			{ width: 1264, columns: 24, gutter: 16, margin: 32, name: `large` }
+			{ width:    0, columns:  6, gutter: 16, margin: 16, name: `XS mobile` },
+			{ width:  576, columns: 12, gutter: 16, margin: 24, name: `SM portrait` },
+			{ width:  768, columns: 24, gutter: 16, margin: 24, name: `MD landscape` },
+			{ width:  992, columns: 24, gutter: 16, margin: 32, name: `LG desktop` },
+			{ width: 1264, columns: 24, gutter: 16, margin: 32, name: `XL large` }
 		],
 		maxWidth: [
 			{ width: 1264, active: true },
@@ -64,7 +64,7 @@ function handleOnMessage(r, sender, sendResponse) {
 			break;
 
 		case `finished`:
-			chrome.runtime.onMessage.removeListener(handleOnMessage);
+			//chrome.runtime.onMessage.removeListener(handleOnMessage);
 			chrome.tabs.onZoomChange.removeListener(handleOnZoomChange);
 			break;
 	}
@@ -82,7 +82,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 	 * so it can update the state
 	 */
 	chrome.tabs.onZoomChange.addListener(handleOnZoomChange);
-	chrome.runtime.onMessage.addListener(handleOnMessage);
+	//chrome.runtime.onMessage.addListener(handleOnMessage);
 
 	const message = { action: `knock-knock` };
 
@@ -103,5 +103,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 		}
 	});
 });
+
+chrome.runtime.onMessage.addListener(handleOnMessage);
 
 `OK`;
